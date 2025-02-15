@@ -27,6 +27,22 @@ export const obtenerTiposLlamada = async (req, res) => {
     }
 };
 
+export const obtenerTipoLlamadaPorNombre = async (req, res) => {
+    try {
+        const { nombre } = req.params;
+        const tipoLlamada = await TipoLlamada.findOne({ nombre });
+
+        if (!tipoLlamada) {
+            return res.status(404).json({ message: `Tipo de llamada con nombre ${nombre} no encontrado.` });
+        }
+
+        res.status(200).json(tipoLlamada);
+    } catch (error) {
+        console.error("Error al obtener tipo de llamada por nombre:", error);
+        res.status(500).json({ message: "Error al obtener el tipo de llamada.", error });
+    }
+};
+
 export const obtenerTipoLlamadaPorId = async (req, res) => {
     try {
         const tipoLlamada = await TipoLlamada.findById(req.params.id);

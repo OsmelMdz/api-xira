@@ -2,21 +2,26 @@ import Empresa from "../models/empresa.model.js";
 
 export const crearEmpresa = async (req, res) => {
     try {
-        const { nombre, etiquetaTipoLlamada } = req.body;
+        const { nombre, etiquetaTipoLlamada, numerosTelefonicos } = req.body;
 
-        let numerosTelefonicos;
-        try {
-            numerosTelefonicos = JSON.parse(req.body.numerosTelefonicos);
-            if (!Array.isArray(numerosTelefonicos)) {
-                return res.status(400).json({ error: "numerosTelefonicos debe ser un array válido." });
+        let numerosTelefonicosFinal = numerosTelefonicos;
+        if (typeof numerosTelefonicos === 'string') {
+            try {
+                numerosTelefonicosFinal = JSON.parse(numerosTelefonicos);
+                if (!Array.isArray(numerosTelefonicosFinal)) {
+                    return res.status(400).json({ error: "numerosTelefonicos debe ser un array válido." });
+                }
+            } catch (error) {
+                return res.status(400).json({ error: "Formato incorrecto en numerosTelefonicos." });
             }
-        } catch (error) {
-            return res.status(400).json({ error: "Formato incorrecto en numerosTelefonicos." });
+        }
+        if (!Array.isArray(numerosTelefonicosFinal)) {
+            return res.status(400).json({ error: "numerosTelefonicos debe ser un array válido." });
         }
 
         const logoImagen = req.file ? `/uploads/${req.file.filename}` : null;
 
-        const nuevaEmpresa = new Empresa({ nombre, numerosTelefonicos, etiquetaTipoLlamada, logoImagen });
+        const nuevaEmpresa = new Empresa({ nombre, numerosTelefonicos: numerosTelefonicosFinal, etiquetaTipoLlamada, logoImagen });
         const empresaGuardada = await nuevaEmpresa.save();
 
         const empresaConPopulado = await Empresa.findById(empresaGuardada._id).populate("etiquetaTipoLlamada");
@@ -26,6 +31,7 @@ export const crearEmpresa = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
+
 
 export const obtenerEmpresas = async (req, res) => {
     try {
